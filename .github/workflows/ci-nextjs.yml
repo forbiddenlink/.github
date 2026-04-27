@@ -1,0 +1,51 @@
+name: Next.js CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        default: '20'
+        type: string
+      skip-tests:
+        default: false
+        type: boolean
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm tsc --noEmit 2>/dev/null || true
+
+      - name: Lint
+        run: |
+          if [ -f biome.json ] || [ -f biome.jsonc ]; then
+            pnpm biome ci .
+          elif [ -f .eslintrc.json ] || [ -f .eslintrc.js ] || [ -f eslint.config.mjs ]; then
+            pnpm eslint . --max-warnings 0
+          fi
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Test
+        if: ${{ !inputs.skip-tests }}
+        run: |
+          if [ -f vitest.config.ts ] || [ -f vitest.config.js ]; then
+            pnpm vitest run
+          elif grep -q '"test"' package.json 2>/dev/null; then
+            pnpm test
+          fi

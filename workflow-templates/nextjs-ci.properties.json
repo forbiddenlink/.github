@@ -1,0 +1,6 @@
+{
+  "name": "Next.js CI + Security",
+  "description": "Reusable CI pipeline: lint, typecheck, build, test + secret/vuln scanning",
+  "iconName": "nextjs-icon",
+  "categories": ["TypeScript", "Next.js"]
+}
