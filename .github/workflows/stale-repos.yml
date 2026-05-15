@@ -1,0 +1,26 @@
+name: Stale Repos Report
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  stale-repos:
+    name: Find stale repositories
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find stale repos
+        uses: github/stale-repos@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORGANIZATION: forbiddenlink
+          DAYS_UNTIL_STALE: 90
+          STALE_LABEL: stale
+          EXEMPT_LABELS: active,pinned
+          ADDITIONAL_METRICS: true
