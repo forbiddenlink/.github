@@ -13,10 +13,10 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Find stale repos
-        uses: github/stale-repos@v1
+        uses: github/stale-repos@v9
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ORGANIZATION: forbiddenlink
