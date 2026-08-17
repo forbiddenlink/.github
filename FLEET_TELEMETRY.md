@@ -53,7 +53,7 @@ Because multiple apps share one PostHog project:
 
 - queries over custom events should filter or break down by `app_id`;
 - hostname may be used as a compatibility fallback for historical events, not as the long-term product identity;
-- local/preview/test traffic must not be mixed into product KPIs;
+- development/preview/test traffic must not be mixed into product KPIs;
 - event names and meanings should remain stable once dashboards depend on them;
 - schema-breaking meaning changes increment `event_version`.
 
@@ -62,7 +62,7 @@ Because multiple apps share one PostHog project:
 - PostHog: product behavior, activation, retention, funnels, experiments, and feature adoption.
 - Vercel/Sentry/Axiom or equivalent runtime tooling: production failures and operational health.
 - Audit Pack: decides which evidence is required and interprets it during viability/quality reviews.
-- HQ: orchestrates access to these providers; it does not duplicate their telemetry stores.
+- HQ (the shared fleet command/orchestration tool): orchestrates access to these providers; it does not duplicate their telemetry stores.
 
 ## Adoption order
 
