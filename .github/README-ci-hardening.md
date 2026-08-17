@@ -1,1 +1,0 @@
-Shared CI hardening is intentionally strict: reusable TypeScript checks and high-severity dependency audits must fail when their underlying validation fails. Consumer-specific exceptions belong in the consumer repo and should be narrow, documented, and temporary.
