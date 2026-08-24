@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Find stale repos
-        uses: github/stale-repos@1528080fabb5abf5d12213736bb1e3b5f7e682cd # v9
+        uses: github/stale-repos@589e3f5e9aca6ec6c2bd978e6c181348907ccbac # v9
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ORGANIZATION: forbiddenlink
