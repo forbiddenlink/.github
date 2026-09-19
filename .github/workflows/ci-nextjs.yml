@@ -18,6 +18,14 @@ jobs:
 
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
 
+      - name: Pin pnpm store directory
+        # pnpm 12 made the store location conditional on a hard-link probe against the
+        # project directory, so `pnpm store path` (which setup-node's cache step reads)
+        # can resolve to a different path than the one pnpm actually writes to. Pinning
+        # store-dir explicitly makes it deterministic again. See actions/setup-node's
+        # "Path Validation Error: ... hence no cache is being saved" on the post step.
+        run: pnpm config set store-dir ~/.pnpm-store
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ inputs.node-version }}
