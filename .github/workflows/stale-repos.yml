@@ -20,7 +20,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ORGANIZATION: forbiddenlink
-          DAYS_UNTIL_STALE: 90
+          INACTIVE_DAYS: 90
           STALE_LABEL: stale
           EXEMPT_LABELS: active,pinned
           ADDITIONAL_METRICS: true
