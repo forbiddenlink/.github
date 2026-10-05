@@ -3,6 +3,6 @@ on: [pull_request]
 
 jobs:
   ci:
-    uses: forbiddenlink/.github/.github/workflows/ci-nextjs.yml@60fa16aa8f2b4e3ba48d9f74169e8f473e92e376 # main
+    uses: forbiddenlink/.github/.github/workflows/ci-nextjs.yml@aa632ea70d0bef6aa71bc508753543a873c6a953 # main
   security:
-    uses: forbiddenlink/.github/.github/workflows/security.yml@60fa16aa8f2b4e3ba48d9f74169e8f473e92e376 # main
+    uses: forbiddenlink/.github/.github/workflows/security.yml@aa632ea70d0bef6aa71bc508753543a873c6a953 # main
