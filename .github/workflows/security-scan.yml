@@ -64,6 +64,14 @@ jobs:
           for r in json.load(open("semgrep.json"))["results"][:50]:
               print(f"- `{r['path']}:{r['start']['line']}` {r['check_id'].rsplit('.', 1)[-1]} ({r['extra'].get('severity', '')})")
           PY
+      - name: Upload Semgrep results
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: semgrep-results
+          path: semgrep.json
+          retention-days: 14
+          if-no-files-found: ignore
 
   secrets:
     name: Secret scanning
