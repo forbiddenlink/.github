@@ -1,8 +1,34 @@
 name: CI
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    branches: [$default-branch]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ci:
-    uses: forbiddenlink/.github/.github/workflows/ci-nextjs.yml@6d7fa76e7f2e3d5d0155625859628312f7d31ef2 # main
+    uses: forbiddenlink/.github/.github/workflows/ci-nextjs.yml@5f8c73e57d52733199c7a7076dcff7a1d51da2a2 # main
+    with:
+      # Self-hosted only for your own PRs; bot PRs stay on GitHub-hosted runners.
+      runs-on: ${{ vars.CI_RUNS_ON != '' && !endsWith(github.actor, '[bot]') && vars.CI_RUNS_ON || '"ubuntu-latest"' }}
   security:
-    uses: forbiddenlink/.github/.github/workflows/security.yml@6d7fa76e7f2e3d5d0155625859628312f7d31ef2 # main
+    uses: forbiddenlink/.github/.github/workflows/security.yml@5f8c73e57d52733199c7a7076dcff7a1d51da2a2 # main
+
+  # Single stable check name for branch rulesets. Fails on any failed, skipped or cancelled need.
+  ci-passed:
+    name: CI passed
+    if: always()
+    needs: [ci, security]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" = "true" ]; then
+            echo "A required job did not succeed"; exit 1
+          fi
