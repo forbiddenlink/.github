@@ -1,0 +1,81 @@
+name: Security Scan (SAST + secrets)
+
+# Reusable baseline for repos where GitHub code scanning is unavailable
+# (private repos on a personal account return 403 for code scanning, so
+# CodeQL results cannot be uploaded there).
+#
+# - Semgrep: on a pull request it fails only on findings the PR introduces
+#   (diff-aware via --baseline-commit), so old findings do not turn every
+#   PR red. On push/schedule it scans everything and writes the count to the
+#   job summary without failing.
+# - TruffleHog: fails on verified (live) secrets only.
+#
+# Caller:
+#   jobs:
+#     scan:
+#       uses: forbiddenlink/.github/.github/workflows/security-scan.yml@main
+#       with:
+#         runs-on: ${{ vars.CI_RUNS_ON || 'ubuntu-latest' }}
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-latest
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: Install semgrep
+        run: pip install --disable-pip-version-check semgrep==1.185.0
+      - name: Semgrep (new findings fail a PR)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          semgrep scan --metrics=off --error \
+            --config=p/default --config=p/security-audit \
+            --baseline-commit "$BASE_SHA"
+      - name: Semgrep (full scan, report only)
+        if: github.event_name != 'pull_request'
+        run: |
+          semgrep scan --metrics=off \
+            --config=p/default --config=p/security-audit \
+            --json --output semgrep.json || true
+          count=$(python3 -c 'import json;print(len(json.load(open("semgrep.json"))["results"]))' 2>/dev/null || echo "unknown")
+          echo "### Semgrep: ${count} finding(s) on ${GITHUB_REF_NAME}" >> "$GITHUB_STEP_SUMMARY"
+          python3 - >> "$GITHUB_STEP_SUMMARY" <<'PY' || true
+          import json
+          for r in json.load(open("semgrep.json"))["results"][:50]:
+              print(f"- `{r['path']}:{r['start']['line']}` {r['check_id'].rsplit('.', 1)[-1]} ({r['extra'].get('severity', '')})")
+          PY
+
+  secrets:
+    name: Secret scanning
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: TruffleHog (verified secrets fail)
+        uses: trufflesecurity/trufflehog@3bd2b5887eb0efb8fa18bfd1d296032924e4ffdc # v3.99.9
+        with:
+          version: "3.97.4"
+          extra_args: --only-verified
